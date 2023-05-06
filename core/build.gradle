@@ -1,0 +1,49 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'it.macgood.core'
+    compileSdk targetAndroidSdk
+
+    defaultConfig {
+        minSdk minAndroidSdk
+        targetSdk targetAndroidSdk
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    viewBinding {
+        enabled true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+//    Core
+    implementation Libs.Android.CoreKtx
+//    Ui
+    implementation Libs.Android.AppCompat
+    implementation Libs.Android.Material
+    implementation Libs.Android.ConstraintLayout
+
+//    Test
+    testImplementation Libs.Test.JUnit
+    androidTestImplementation Libs.Test.ExtJUnit
+    androidTestImplementation Libs.Test.EspressoCore
+}
