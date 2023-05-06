@@ -4,33 +4,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".presentation.FileManagerFragment">
+    tools:context=".presentation.filemanager.FileManagerFragment">
 
-    <!-- TODO: Update blank fragment layout -->
 
     <TextView
-        android:id="@+id/pathTextView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="-26dp" />
-
-    <ProgressBar
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/pathTextView"
-        app:layout_constraintEnd_toEndOf="@+id/pathTextView"
-        app:layout_constraintStart_toStartOf="@+id/pathTextView"
-        app:layout_constraintTop_toTopOf="@+id/pathTextView" />
-
-    <Button
         android:id="@+id/backButton"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="back"
+        android:layout_marginStart="4dp"
+        android:text="@string/up"
+        android:textAlignment="textStart"
+        android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -38,9 +24,83 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/sortByNameAscButton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/pathTextView"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/backButton" />
+
+    <Button
+        android:id="@+id/sortByNameAscButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="A-Z"
+        app:layout_constraintBottom_toTopOf="@+id/sortBySizeAscButton"
+        app:layout_constraintEnd_toEndOf="@+id/sortByExtensionAscButton"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/sortByNameDescButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Z-A"
+        app:layout_constraintBottom_toTopOf="@+id/sortBySizeDescButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/sortByExtensionAscButton" />
+
+    <Button
+        android:id="@+id/sortByExtensionAscButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="extAsc"
+        app:layout_constraintBottom_toTopOf="@+id/sortByExtensionDescButton"
+        app:layout_constraintEnd_toStartOf="@+id/sortBySizeDescButton"
+        app:layout_constraintStart_toEndOf="@+id/sortBySizeAscButton"
+        app:layout_constraintTop_toTopOf="@+id/sortBySizeDescButton" />
+
+    <Button
+        android:id="@+id/sortByExtensionDescButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="extDesc"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/sortByDateDescButton"
+        app:layout_constraintStart_toEndOf="@+id/sortByDateAscButton" />
+
+    <Button
+        android:id="@+id/sortByDateAscButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="DateAsc"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/sortByDateDescButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="DateDesc"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/sortBySizeAscButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="64dp"
+        android:text="sizeAsc"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/sortBySizeDescButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="64dp"
+        android:text="SizeDesc"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

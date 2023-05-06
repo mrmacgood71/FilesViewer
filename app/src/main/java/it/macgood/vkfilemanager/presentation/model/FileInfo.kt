@@ -1,4 +1,4 @@
-package it.macgood.vkfilemanager.presentation
+package it.macgood.vkfilemanager.presentation.model
 
 data class FileInfo(
     val id: Long,

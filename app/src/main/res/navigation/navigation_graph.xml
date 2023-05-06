@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/fileManagerFragment"
-        android:name="it.macgood.vkfilemanager.presentation.FileManagerFragment"
+        android:name="it.macgood.vkfilemanager.presentation.filemanager.FileManagerFragment"
         android:label="File Manager"
         tools:layout="@layout/fragment_file_manager" />
 </navigation>

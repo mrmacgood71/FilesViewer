@@ -1,9 +1,8 @@
-package it.macgood.vkfilemanager.presentation
+package it.macgood.vkfilemanager.presentation.filemanager
 
-import android.content.ContentResolver
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,18 +13,19 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import it.macgood.vkfilemanager.R
 import it.macgood.vkfilemanager.databinding.ItemFileBinding
+import it.macgood.vkfilemanager.databinding.ItemLegendBinding
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.log
 
-
-class FileManagerAdapter: RecyclerView.Adapter<FileManagerAdapter.FileViewHolder>() {
+class FileManagerAdapter(
+    // TODO: cringe
+    private val fileManagerViewModel: FileManagerViewModel
+): RecyclerView.Adapter<FileManagerAdapter.FileViewHolder>() {
 
     private val differCallback = object : DiffUtil.ItemCallback<File>() {
 
         override fun areItemsTheSame(oldItem: File, newItem: File): Boolean {
-            Log.d(TAG, "onBindViewHolder: ${oldItem.path == newItem.path}")
             return oldItem.path == newItem.path
         }
 
@@ -62,19 +62,16 @@ class FileManagerAdapter: RecyclerView.Adapter<FileManagerAdapter.FileViewHolder
                 Date(file.lastModified())
             );
             binding.fileDateOfCreationTextView.text = d.toString()
-
-            Log.d(TAG, "onBindViewHolder: ${differ.currentList[position]}")
             
             itemView.setOnClickListener {
                 if (file.isDirectory) {
                     val root = File(file.absolutePath)
                     val filesAndFolders = root.listFiles()
-                    differ.submitList(filesAndFolders?.toList())
-                    
+                    fileManagerViewModel.setParentPath(file.path)
+
+                    fileManagerViewModel.setRootFiles(filesAndFolders?.toList())
 
                 } else {
-                    Log.d(TAG, "onBindViewHolder: ${file.extension}")
-
                     try {
                         openFile(file, it)
                     } catch (e: Exception) {
@@ -82,8 +79,13 @@ class FileManagerAdapter: RecyclerView.Adapter<FileManagerAdapter.FileViewHolder
                     }
                 }
             }
+            itemView.setOnLongClickListener {
+                binding.itemLayout.setBackgroundColor(Color.GRAY)
+                true
+            }
         }
     }
+
 
     override fun getItemCount(): Int = differ.currentList.size
 
@@ -101,6 +103,7 @@ class FileManagerAdapter: RecyclerView.Adapter<FileManagerAdapter.FileViewHolder
 
 
     class FileViewHolder(val binding: ItemFileBinding) : RecyclerView.ViewHolder(binding.root)
+    class LegendViewHolder(val binding: ItemLegendBinding) : RecyclerView.ViewHolder(binding.root)
 
     companion object {
         const val TAG = "TAG"
