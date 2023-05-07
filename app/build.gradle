@@ -17,6 +17,12 @@ android {
         versionCode 1
         versionName "1.0"
 
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -52,10 +58,10 @@ dependencies {
     implementation Libs.Android.CoroutinesCore
     implementation Libs.Android.CoroutinesAndroid
 
-//    Network
-    implementation Libs.Network.Retrofit
-    implementation Libs.Network.RetrofitGsonConverter
-    implementation Libs.Network.OkHttp3LoggingInterceptor
+//    Room
+    implementation Libs.Database.RoomKtx
+    implementation Libs.Database.RoomRuntime
+    kapt Libs.Database.RoomCompiler
 
 //    Hilt
     implementation Libs.DI.Hilt
@@ -83,11 +89,7 @@ dependencies {
     androidTestImplementation Libs.Test.ExtJUnit
     androidTestImplementation Libs.Test.EspressoCore
 
-    //    Room
-    def roomVersion = '2.5.1'
-    implementation "androidx.room:room-runtime:$roomVersion"
-    kapt "androidx.room:room-compiler:$roomVersion"
-    implementation "androidx.room:room-ktx:$roomVersion"
+
 
     implementation project(":core")
 }

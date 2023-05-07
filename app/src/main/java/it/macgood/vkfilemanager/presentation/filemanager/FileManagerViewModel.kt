@@ -4,17 +4,25 @@ import android.os.Environment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import it.macgood.vkfilemanager.data.model.FileChecksum
+import it.macgood.vkfilemanager.domain.usecase.SelectAllFilesUseCase
 import it.macgood.vkfilemanager.presentation.model.SortBy
 import java.io.File
+import javax.inject.Inject
 
-class FileManagerViewModel : ViewModel() {
+@HiltViewModel
+class FileManagerViewModel @Inject constructor(
+    private val selectAllFilesUseCase: SelectAllFilesUseCase
+): ViewModel() {
 
-    // TODO: private livedatas
     private val _parentPath: MutableLiveData<String> = MutableLiveData()
-
     val parentPath: LiveData<String> = _parentPath
-    val _rootFiles: MutableLiveData<List<File>> = MutableLiveData()
+
+    private val _rootFiles: MutableLiveData<List<File>> = MutableLiveData()
     val rootFiles: LiveData<List<File>> = _rootFiles
+
+    val databaseFileChecksums: MutableLiveData<List<FileChecksum>> = MutableLiveData()
 
     init {
         val path = Environment.getExternalStorageDirectory().path
@@ -30,6 +38,10 @@ class FileManagerViewModel : ViewModel() {
         if (files != null) {
             _rootFiles.postValue(files!!)
         }
+    }
+
+    fun selectAllFiles() {
+        databaseFileChecksums.postValue(selectAllFilesUseCase.execute().value)
     }
 
     fun sortFilesBy(sortBy: SortBy) {
@@ -58,9 +70,7 @@ class FileManagerViewModel : ViewModel() {
             SortBy.EXTENSION_DESC -> {
                 _rootFiles.postValue(_rootFiles.value?.sortedByDescending { it.extension })
             }
-
         }
-
     }
 
 }

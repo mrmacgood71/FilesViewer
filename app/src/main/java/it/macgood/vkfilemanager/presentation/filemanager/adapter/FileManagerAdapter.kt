@@ -1,9 +1,8 @@
-package it.macgood.vkfilemanager.presentation.filemanager
+package it.macgood.vkfilemanager.presentation.filemanager.adapter
 
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import it.macgood.vkfilemanager.R
 import it.macgood.vkfilemanager.databinding.ItemFileBinding
 import it.macgood.vkfilemanager.databinding.ItemLegendBinding
+import it.macgood.vkfilemanager.presentation.filemanager.FileManagerViewModel
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
