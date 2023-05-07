@@ -3,11 +3,13 @@ package it.macgood.vkfilemanager.presentation.filemanager
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.MimeTypeMap
 import android.widget.Toast
+import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -75,6 +77,7 @@ class FileManagerAdapter(
                     try {
                         openFile(file, it)
                     } catch (e: Exception) {
+                        e.printStackTrace()
                         Toast.makeText(it.context, "Cannot open the file", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -92,15 +95,19 @@ class FileManagerAdapter(
     private fun openFile(file: File, it: View) {
         val intent = Intent()
         intent.action = Intent.ACTION_VIEW
-        val mime = MimeTypeMap.getSingleton()
-        val mimeType = mime.getMimeTypeFromExtension(file.extension)
-        intent.setDataAndType(Uri.parse(file.path), mimeType)
+        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension)
+
+        val fileUri = FileProvider.getUriForFile(
+            it.context,
+            it.context.applicationContext.packageName + ".provider",
+            file
+        )
+        intent.setDataAndType(fileUri, mimeType)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
         Intent.createChooser(intent, "Open with: ")
         it.context.startActivity(intent)
     }
-
-
 
     class FileViewHolder(val binding: ItemFileBinding) : RecyclerView.ViewHolder(binding.root)
     class LegendViewHolder(val binding: ItemLegendBinding) : RecyclerView.ViewHolder(binding.root)

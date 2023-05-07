@@ -7,14 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import it.macgood.core.fragment.BaseFragment
 import it.macgood.vkfilemanager.databinding.FragmentFileManagerBinding
 import it.macgood.vkfilemanager.presentation.MainActivity
 import it.macgood.vkfilemanager.presentation.model.SortBy
 import java.io.File
 
-class FileManagerFragment : Fragment() {
+class FileManagerFragment : BaseFragment() {
 
     private lateinit var binding: FragmentFileManagerBinding
 
@@ -22,6 +22,8 @@ class FileManagerFragment : Fragment() {
 
     private val path = Environment.getExternalStorageDirectory().path
     private var root: File = File(path)
+    private lateinit var fileAdapter: FileManagerAdapter
+    //TODO: view stub if no files
     private var filesAndFolders: Array<File>? = null
 
     override fun onCreateView(
@@ -29,6 +31,8 @@ class FileManagerFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentFileManagerBinding.inflate(inflater, container, false)
+
+        fileAdapter = FileManagerAdapter(fileManagerViewModel)
 
         permission.launch(android.Manifest.permission.READ_EXTERNAL_STORAGE)
 
@@ -42,28 +46,39 @@ class FileManagerFragment : Fragment() {
         when {
             granted -> {
                 filesAndFolders = root.listFiles()
-                val fileAdapter = FileManagerAdapter(fileManagerViewModel)
+
 
                 fileManagerViewModel.parentPath.observe(viewLifecycleOwner) { parentPath ->
 
                     (requireActivity() as MainActivity).supportActionBar?.title = parentPath
 
                     binding.backButton.setOnClickListener {
-                        val substringPath = parentPath.substring(0, parentPath.lastIndexOf("/"))
 
-                        root = File(substringPath)
-                        filesAndFolders = root.listFiles()
+                        if (parentPath != path) {
+                            val substringPath = parentPath.substring(0, parentPath.lastIndexOf("/"))
 
-                        (requireActivity() as MainActivity).supportActionBar?.title = substringPath
+                            root = File(substringPath)
+                            filesAndFolders = root.listFiles()
 
-                        fileManagerViewModel.setRootFiles(filesAndFolders?.toList())
-                        fileManagerViewModel.setParentPath(substringPath)
+                            (requireActivity() as MainActivity).supportActionBar?.title = substringPath
+
+                            fileManagerViewModel.setRootFiles(filesAndFolders?.toList())
+                            fileManagerViewModel.setParentPath(substringPath)
+                        } else {
+                            makeToast("You are at the top level")
+                        }
                     }
                 }
 
                 configSorting()
 
                 fileManagerViewModel.rootFiles.observe(viewLifecycleOwner) {
+
+                    if (it == null || it.isEmpty()) {
+                        binding.emptyFolderView.root.visibility = View.VISIBLE
+                    } else {
+                        binding.emptyFolderView.root.visibility = View.GONE
+                    }
                     fileAdapter.differ.submitList(it)
                 }
 
@@ -77,6 +92,13 @@ class FileManagerFragment : Fragment() {
             else -> {
 
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        fileManagerViewModel.rootFiles.observe(viewLifecycleOwner) {
+            fileAdapter.differ.submitList(it)
         }
     }
 

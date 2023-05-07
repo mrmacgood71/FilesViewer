@@ -7,11 +7,12 @@
     tools:context=".presentation.filemanager.FileManagerFragment">
 
 
+
     <TextView
         android:id="@+id/backButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
+        android:layout_marginStart="32dp"
         android:text="@string/up"
         android:textAlignment="textStart"
         android:textSize="24sp"
@@ -100,6 +101,17 @@
         android:text="SizeDesc"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <include
+        layout="@layout/stub_empty_folder"
+        android:id="@+id/emptyFolderView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/sortByNameAscButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/backButton" />
 
 
 

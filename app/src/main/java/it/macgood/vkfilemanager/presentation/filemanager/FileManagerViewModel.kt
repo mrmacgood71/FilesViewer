@@ -19,7 +19,7 @@ class FileManagerViewModel : ViewModel() {
     init {
         val path = Environment.getExternalStorageDirectory().path
         val root = File(path)
-        _rootFiles.postValue(root.listFiles().toList())
+        _rootFiles.postValue(root.listFiles().toList().sortedBy { it.name.lowercase() })
     }
 
     fun setParentPath(path: String) {
@@ -27,16 +27,18 @@ class FileManagerViewModel : ViewModel() {
     }
 
     fun setRootFiles(files: List<File>?) {
-        _rootFiles.postValue(files!!)
+        if (files != null) {
+            _rootFiles.postValue(files!!)
+        }
     }
 
     fun sortFilesBy(sortBy: SortBy) {
         when(sortBy) {
             SortBy.FILENAME_ASC -> {
-                _rootFiles.postValue(_rootFiles.value?.sortedBy { it.name })
+                _rootFiles.postValue(_rootFiles.value?.sortedBy { it.name.lowercase() })
             }
             SortBy.FILENAME_DESC -> {
-                _rootFiles.postValue(_rootFiles.value?.sortedByDescending { it.name })
+                _rootFiles.postValue(_rootFiles.value?.sortedByDescending { it.name.lowercase() })
             }
             SortBy.SIZE_ASC -> {
                 _rootFiles.postValue(_rootFiles.value?.sortedBy { it.length() })
