@@ -8,6 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
+import com.google.common.io.Files
+import com.google.common.io.Files.isFile
 import dagger.hilt.android.AndroidEntryPoint
 import it.macgood.core.fragment.BaseFragment
 import it.macgood.vkfilemanager.databinding.FragmentFileManagerBinding
@@ -16,10 +18,8 @@ import it.macgood.vkfilemanager.presentation.MainActivity
 import it.macgood.vkfilemanager.presentation.filemanager.adapter.FileManagerAdapter
 import it.macgood.vkfilemanager.presentation.filemanager.mapper.FileMapper
 import it.macgood.vkfilemanager.presentation.filemanager.model.SortBy
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import org.apache.commons.io.FileUtils
 import java.io.File
 import javax.inject.Inject
 
@@ -61,16 +61,21 @@ class FileManagerFragment : BaseFragment() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             when {
                 granted -> {
-                    binding.providePermissionButton.visibility = View.GONE
-                    filesAndFolders = rootFolder.listFiles()
                     with(binding) {
+                        providePermissionButton.visibility = View.GONE
+                        filesAndFolders = rootFolder.listFiles()
+
                         readExternalStorage { list ->
-                            binding.showModifiedFilesButton?.text = "Modified"
-                            binding.showModifiedFilesButton?.setOnClickListener {
+                            showModifiedFilesButton?.text = "Modified"
+                            showModifiedFilesButton?.setOnClickListener {
                                 fileAdapter.differ.submitList(list)
+                                configEmptyFolderViewVisibility(list)
+                                binding.emptyFolderView.emptyFolderTextView.text = "No modified files"
+                                binding.backButton.visibility = View.GONE
                             }
-                            binding.showStorageFilesButton?.setOnClickListener {
+                            showStorageFilesButton?.setOnClickListener {
                                 fileManagerViewModel.sortFilesBy(SortBy.FILENAME_ASC)
+                                binding.backButton.visibility = View.VISIBLE
                             }
                         }
                         fileManagerViewModel.parentPath.observe(viewLifecycleOwner) { parentPath ->
@@ -89,18 +94,16 @@ class FileManagerFragment : BaseFragment() {
                                 }
                             }
 
-                            binding.fileRecyclerView.adapter = fileAdapter
+                            fileRecyclerView.adapter = fileAdapter
                         }
                     }
                 }
-                //заново спросить насчёт permission
                 !shouldShowRequestPermissionRationale(android.Manifest.permission.READ_EXTERNAL_STORAGE) -> {
                     makeToast("Reading is needed")
                 }
                 else -> {
                     binding.configEmptyFolderViewVisibility(listOf())
                     binding.providePermissionButton.visibility = View.VISIBLE
-
                 }
             }
         }
@@ -110,31 +113,32 @@ class FileManagerFragment : BaseFragment() {
         GlobalScope.launch(Dispatchers.IO) {
             val externalDir = Environment.getExternalStorageDirectory()
             val fileList = mutableListOf<File>()
-            readDirectory(externalDir, fileList)
 
-            val databaseFilesList = selectAllFilesUseCase.execute()
-            databaseFilesList.forEach { Log.d(TAG, "readExternalStorage: ${it}") }
-            fileList.forEach { Log.d(TAG, "readExternalStorage: ${it}") }
+            val readJob = launch(Dispatchers.IO) {
+                val start = System.currentTimeMillis()
+                apacheReadDirectory(externalDir, fileList)
+                val end = System.currentTimeMillis()
+                Log.d(TAG, "readExternalStorage: ${end - start}")
+            }
+
+            val databaseJob = async(Dispatchers.IO) {
+                selectAllFilesUseCase.execute()
+            }
+            readJob.join()
             val storageFilesList = FileMapper.toFileChecksum(fileList)
             val modifiedFilesList: MutableList<File> = mutableListOf()
-
-            databaseFilesList.forEach { file ->
-                val find = storageFilesList.find { file.path == it.path }
+            val databaseFilesList = databaseJob.await()
+            for (file in databaseFilesList.toList()) {
+                val find = storageFilesList.find { it.path == file.path }
                 if (find != null) {
                     if (find.checksum == file.checksum) {
-                        withContext(Dispatchers.Main) {
-                            modifiedFilesList.add(FileMapper.toFile(file))
-//                            fileAdapter.differ.submitList(modifiedFilesList.toList())
-                        }
-                        Log.d(TAG, "RES: not mod ${find} + ${file}")
+
                     } else {
-                        Log.d(TAG, "RES: moded ${find} + ${file}")
+                        modifiedFilesList.add(FileMapper.toFile(file))
                     }
                 }
             }
-
             fileManagerViewModel.insertAll(storageFilesList)
-
             withContext(Dispatchers.Main) {
                 makeToast("rdy")
                 onComplete(modifiedFilesList)
@@ -142,7 +146,16 @@ class FileManagerFragment : BaseFragment() {
         }
     }
 
-    //TODO: Filechecksum
+    fun apacheReadDirectory(directory: File, fileList: MutableList<File>) {
+        val files = FileUtils.listFiles(directory, null, true)
+        fileList.addAll(files)
+    }
+
+//    fun guavaReadDirectory(directory: File, fileList: MutableList<File>) {
+//        val files = Files.fileTreeTraverser().preOrderTraversal(directory).filter { it.isFile }
+//        fileList.addAll(files)
+//    }
+
     fun readDirectory(directory: File, fileList: MutableList<File>) {
         val files = directory.listFiles() ?: return
 
@@ -208,6 +221,7 @@ class FileManagerFragment : BaseFragment() {
     private fun FragmentFileManagerBinding.configEmptyFolderViewVisibility(it: List<File>) {
         if (it == null || it.isEmpty()) {
             emptyFolderView.root.visibility = View.VISIBLE
+            emptyFolderView.emptyFolderTextView.text = "This folder is empty :("
         } else {
             emptyFolderView.root.visibility = View.GONE
         }

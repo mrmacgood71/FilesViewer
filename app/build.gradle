@@ -89,6 +89,8 @@ dependencies {
     androidTestImplementation Libs.Test.ExtJUnit
     androidTestImplementation Libs.Test.EspressoCore
 
+    implementation 'commons-io:commons-io:2.11.0'
+    implementation 'com.google.guava:guava:30.1.1-jre'
 
 
     implementation project(":core")

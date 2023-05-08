@@ -60,10 +60,10 @@ class FileManagerViewModel @Inject constructor(
                 _rootFiles.postValue(_rootFiles.value?.sortedBy { it.name.lowercase() })
             }
             SortBy.SIZE_ASC -> {
-                _rootFiles.postValue(_rootFiles.value?.sortedBy { FileUtils.countFileSize(it)})
+                _rootFiles.postValue(_rootFiles.value?.sortedBy { it.length()})
             }
             SortBy.SIZE_DESC -> {
-                _rootFiles.postValue(_rootFiles.value?.sortedByDescending { FileUtils.countFileSize(it) })
+                _rootFiles.postValue(_rootFiles.value?.sortedByDescending { it.length() })
             }
             SortBy.DATE_OF_CREATION_ASC -> {
                 _rootFiles.postValue(_rootFiles.value?.sortedBy { it.lastModified() })

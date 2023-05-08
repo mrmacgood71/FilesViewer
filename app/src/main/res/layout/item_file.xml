@@ -13,7 +13,7 @@
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:layout_marginStart="32dp"
-        app:layout_constraintBottom_toBottomOf="@+id/fileDateOfCreationTextView"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -22,36 +22,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="8dp"
+        android:textSize="18sp"
         app:layout_constraintStart_toEndOf="@+id/fileIconImageView"
         app:layout_constraintTop_toTopOf="@id/fileIconImageView"
         tools:text="fileNameTextView" />
 
-    <TextView
-        android:id="@+id/fileSizeTextView"
+    <Button
+        android:id="@+id/fileInfoButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        app:layout_constraintStart_toEndOf="@+id/fileIconImageView"
-        app:layout_constraintTop_toBottomOf="@+id/fileNameTextView"
-        tools:text="fileSizeTextView" />
-
-    <TextView
-        android:id="@+id/fileDateOfCreationTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        app:layout_constraintStart_toEndOf="@+id/fileIconImageView"
-        app:layout_constraintTop_toBottomOf="@+id/fileSizeTextView"
-        tools:text="fileDateOfCreationTextView" />
-
-    <TextView
-        android:id="@+id/modifiedTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TextView"
-        app:layout_constraintBottom_toBottomOf="@+id/fileSizeTextView"
+        android:layout_marginEnd="8dp"
+        android:text="Info"
+        app:layout_constraintBottom_toBottomOf="@+id/fileIconImageView"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/fileDateOfCreationTextView"
-        app:layout_constraintTop_toBottomOf="@+id/fileNameTextView" />
+        app:layout_constraintTop_toTopOf="@+id/fileIconImageView" />
 </androidx.constraintlayout.widget.ConstraintLayout>
