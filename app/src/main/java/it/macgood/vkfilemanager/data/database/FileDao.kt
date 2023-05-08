@@ -5,7 +5,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import it.macgood.vkfilemanager.data.model.FileChecksum
+import it.macgood.vkfilemanager.domain.model.FileChecksum
 
 @Dao
 interface FileDao {
@@ -17,7 +17,7 @@ interface FileDao {
     suspend fun insertAll(fileChecksum: List<FileChecksum>)
 
     @Query("SELECT * FROM fileChecksum")
-    fun selectAll(): LiveData<List<FileChecksum>>
+    suspend fun selectAll(): List<FileChecksum>
 
     @Query("SELECT checksum FROM fileChecksum")
     fun selectChecksum(): LiveData<List<String>>

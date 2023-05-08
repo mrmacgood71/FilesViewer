@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "73f21f18cf2641ebd3eff6b30ea43b09",
+    "identityHash": "b05626490fe7c10d5e766e0b29151acc",
     "entities": [
       {
         "tableName": "fileChecksum",
@@ -33,14 +33,24 @@
             "id"
           ]
         },
-        "indices": [],
+        "indices": [
+          {
+            "name": "index_fileChecksum_path",
+            "unique": true,
+            "columnNames": [
+              "path"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_fileChecksum_path` ON `${TABLE_NAME}` (`path`)"
+          }
+        ],
         "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '73f21f18cf2641ebd3eff6b30ea43b09')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b05626490fe7c10d5e766e0b29151acc')"
     ]
   }
 }

@@ -1,6 +1,7 @@
 package it.macgood.vkfilemanager.presentation.di
 
 import android.content.Context
+import android.os.Environment
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,5 +21,6 @@ object DataModule {
     @Provides
     @Singleton
     fun provideFileDao(database: FileDatabase) = database.getFileDao()
+
 
 }

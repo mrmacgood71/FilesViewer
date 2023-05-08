@@ -5,8 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:id="@+id/itemLayout"
-    >
+    android:background="@drawable/background_selectable_item"
+    android:id="@+id/itemLayout">
 
     <ImageView
         android:id="@+id/fileIconImageView"
@@ -44,4 +44,14 @@
         app:layout_constraintStart_toEndOf="@+id/fileIconImageView"
         app:layout_constraintTop_toBottomOf="@+id/fileSizeTextView"
         tools:text="fileDateOfCreationTextView" />
+
+    <TextView
+        android:id="@+id/modifiedTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        app:layout_constraintBottom_toBottomOf="@+id/fileSizeTextView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/fileDateOfCreationTextView"
+        app:layout_constraintTop_toBottomOf="@+id/fileNameTextView" />
 </androidx.constraintlayout.widget.ConstraintLayout>

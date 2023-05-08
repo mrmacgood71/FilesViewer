@@ -24,35 +24,10 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintBottom_toTopOf="@+id/sortByLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/backButton" />
-
-    <LinearLayout
-        android:id="@+id/linearLayout"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@id/sortByLayout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <Button
-            android:id="@+id/showModifiedFilesButton"
-            android:layout_width="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="Searching"
-            android:layout_height="wrap_content"/>
-
-        <Button
-            android:id="@+id/showStorageFilesButton"
-            android:layout_width="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="Storage"
-            android:layout_height="wrap_content"/>
-
-    </LinearLayout>
 
     <HorizontalScrollView
         android:id="@+id/sortByLayout"
@@ -68,6 +43,27 @@
             android:layout_gravity="center_vertical"
             android:overScrollMode="never"
             android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/sortByNameAscButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:text="A-Z"
+                app:layout_constraintBottom_toTopOf="@+id/sortBySizeAscButton"
+                app:layout_constraintEnd_toEndOf="@+id/sortByExtensionAscButton"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <Button
+                android:id="@+id/sortByNameDescButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="Z-A"
+                app:layout_constraintBottom_toTopOf="@+id/sortBySizeDescButton"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/sortByExtensionAscButton" />
 
             <Button
                 android:id="@+id/sortByExtensionAscButton"
@@ -135,10 +131,10 @@
         layout="@layout/stub_empty_folder"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="128dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginBottom="128dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/sortByLayout"
         app:layout_constraintEnd_toEndOf="parent"
@@ -149,7 +145,7 @@
         android:id="@+id/providePermissionButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="128dp"
+        android:layout_marginBottom="64dp"
         android:text="Provide Permission"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"

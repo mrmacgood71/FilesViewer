@@ -4,16 +4,21 @@ import android.os.Environment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import it.macgood.vkfilemanager.data.model.FileChecksum
+import it.macgood.vkfilemanager.domain.model.FileChecksum
+import it.macgood.vkfilemanager.domain.usecase.InsertAllFilesUseCase
 import it.macgood.vkfilemanager.domain.usecase.SelectAllFilesUseCase
-import it.macgood.vkfilemanager.presentation.model.SortBy
+import it.macgood.vkfilemanager.presentation.filemanager.model.SortBy
+import it.macgood.vkfilemanager.utils.FileUtils
+import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 class FileManagerViewModel @Inject constructor(
-    private val selectAllFilesUseCase: SelectAllFilesUseCase
+    private val selectAllFilesUseCase: SelectAllFilesUseCase,
+    private val insertAllFilesUseCase: InsertAllFilesUseCase
 ): ViewModel() {
 
     private val _parentPath: MutableLiveData<String> = MutableLiveData()
@@ -22,12 +27,17 @@ class FileManagerViewModel @Inject constructor(
     private val _rootFiles: MutableLiveData<List<File>> = MutableLiveData()
     val rootFiles: LiveData<List<File>> = _rootFiles
 
-    val databaseFileChecksums: MutableLiveData<List<FileChecksum>> = MutableLiveData()
+    val selectAll: MutableLiveData<List<FileChecksum>> = MutableLiveData()
 
     init {
         val path = Environment.getExternalStorageDirectory().path
         val root = File(path)
-        _rootFiles.postValue(root.listFiles().toList().sortedBy { it.name.lowercase() })
+        _parentPath.postValue(path)
+        _rootFiles.postValue(root.listFiles()?.toList())
+    }
+
+    fun insertAll(filesChecksum: List<FileChecksum>) = viewModelScope.launch {
+        insertAllFilesUseCase.execute(filesChecksum)
     }
 
     fun setParentPath(path: String) {
@@ -40,8 +50,8 @@ class FileManagerViewModel @Inject constructor(
         }
     }
 
-    fun selectAllFiles() {
-        databaseFileChecksums.postValue(selectAllFilesUseCase.execute().value)
+    fun selectAllFiles() = viewModelScope.launch {
+        selectAll.postValue(selectAllFilesUseCase.execute())
     }
 
     fun sortFilesBy(sortBy: SortBy) {
@@ -49,14 +59,11 @@ class FileManagerViewModel @Inject constructor(
             SortBy.FILENAME_ASC -> {
                 _rootFiles.postValue(_rootFiles.value?.sortedBy { it.name.lowercase() })
             }
-            SortBy.FILENAME_DESC -> {
-                _rootFiles.postValue(_rootFiles.value?.sortedByDescending { it.name.lowercase() })
-            }
             SortBy.SIZE_ASC -> {
-                _rootFiles.postValue(_rootFiles.value?.sortedBy { it.length() })
+                _rootFiles.postValue(_rootFiles.value?.sortedBy { FileUtils.countFileSize(it)})
             }
             SortBy.SIZE_DESC -> {
-                _rootFiles.postValue(_rootFiles.value?.sortedByDescending { it.length() })
+                _rootFiles.postValue(_rootFiles.value?.sortedByDescending { FileUtils.countFileSize(it) })
             }
             SortBy.DATE_OF_CREATION_ASC -> {
                 _rootFiles.postValue(_rootFiles.value?.sortedBy { it.lastModified() })
