@@ -9,7 +9,10 @@ buildscript {
         def lifecycleVersion = '2.5.1'
         def koin_version = "3.4.0"
         def hilt_version = "2.44"
+        def coroutinesVersion = "1.6.4"
+        def glideVersion = "4.15.1"
         def retrofit_version = "2.9.0"
+        def roomVersion = '2.5.1'
 
 
         Libs = [
@@ -20,8 +23,8 @@ buildscript {
                         AppCompat            : "androidx.appcompat:appcompat:1.6.0",
                         LifecycleRuntimeKtx  : "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion",
                         LifecycleViewModelKtx: "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion",
-                        CoroutinesCore       : "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.1",
-                        CoroutinesAndroid    : "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4",
+                        CoroutinesCore       : "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion",
+                        CoroutinesAndroid    : "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion",
                         ConstraintLayout     : "androidx.constraintlayout:constraintlayout:2.1.4",
                         RecyclerView         : "androidx.recyclerview:recyclerview:1.2.1",
                         NavigationFragment   : "androidx.navigation:navigation-fragment-ktx:$navigationVersion",
@@ -36,11 +39,16 @@ buildscript {
                 Network: [
                         Retrofit                   : "com.squareup.retrofit2:retrofit:$retrofit_version",
                         RetrofitGsonConverter      : "com.squareup.retrofit2:converter-gson:$retrofit_version",
-                        OkHttp3LoggingInterceptor : "com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2"
+                        OkHttp3LoggingInterceptor  : "com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2"
+                ],
+                Database: [
+                    RoomKtx: "androidx.room:room-ktx:$roomVersion",
+                    RoomRuntime: "androidx.room:room-runtime:$roomVersion",
+                    RoomCompiler: "androidx.room:room-compiler:$roomVersion"
                 ],
                 Glide  : [
-                        Glide        : "com.github.bumptech.glide:glide:4.12.0",
-                        GlideCompiler: "com.github.bumptech.glide:compiler:4.11.0"
+                        Glide        : "com.github.bumptech.glide:glide:$glideVersion",
+                        GlideCompiler: "com.github.bumptech.glide:compiler:$glideVersion"
 
                 ],
                 Ui : [
@@ -48,7 +56,7 @@ buildscript {
                         Shimmer   : "com.facebook.shimmer:shimmer:0.5.0"
                 ],
                 Test   : [
-                        TestCoroutines : "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.1",
+                        TestCoroutines : "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion",
                         JUnit          : "junit:junit:4.13.2",
                         JUnitCore      : "org.junit.jupiter:junit-jupiter:5.8.2",
                         MockitoCore    : "org.mockito:mockito-core:4.0.0",

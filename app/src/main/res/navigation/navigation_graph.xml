@@ -9,5 +9,24 @@
         android:id="@+id/fileManagerFragment"
         android:name="it.macgood.vkfilemanager.presentation.filemanager.FileManagerFragment"
         android:label="File Manager"
-        tools:layout="@layout/fragment_file_manager" />
+        tools:layout="@layout/fragment_file_manager" >
+        <action
+            android:id="@+id/action_fileManagerFragment_to_fileInfoDialogFragment"
+            app:destination="@id/fileInfoDialogFragment" />
+    </fragment>
+    <dialog
+        android:id="@+id/fileInfoDialogFragment"
+        android:name="it.macgood.vkfilemanager.presentation.dialog.FileInfoDialogFragment"
+        android:label="FileInfoDialogFragment" >
+        <argument
+            android:name="size"
+            app:argType="long"
+            android:defaultValue="0L" />
+        <argument
+            android:name="dateOfCreation"
+            app:argType="string" />
+        <argument
+            android:name="name"
+            app:argType="string" />
+    </dialog>
 </navigation>
