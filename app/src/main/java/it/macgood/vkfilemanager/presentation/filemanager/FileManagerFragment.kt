@@ -8,36 +8,26 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
-import com.google.android.material.snackbar.BaseTransientBottomBar
-import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import it.macgood.core.fragment.BaseFragment
 import it.macgood.vkfilemanager.R
 import it.macgood.vkfilemanager.databinding.FragmentFileManagerBinding
 import it.macgood.vkfilemanager.databinding.PartSortRadioGroupBinding
-import it.macgood.vkfilemanager.domain.model.FileChecksum
-import it.macgood.vkfilemanager.domain.usecase.SelectAllFilesUseCase
 import it.macgood.vkfilemanager.presentation.MainActivity
 import it.macgood.vkfilemanager.presentation.filemanager.adapter.FileManagerAdapter
-import it.macgood.vkfilemanager.presentation.filemanager.mapper.FileMapper
 import it.macgood.vkfilemanager.presentation.filemanager.model.SortBy
-import it.macgood.vkfilemanager.utils.Md5Provider
-import kotlinx.coroutines.*
-import org.apache.commons.io.FileUtils
 import java.io.File
-import javax.inject.Inject
 import kotlin.properties.Delegates
 
 @AndroidEntryPoint
 class FileManagerFragment : BaseFragment() {
 
     val fileManagerViewModel by viewModels<FileManagerViewModel>()
+
     private val path = Environment.getExternalStorageDirectory().path
     private var rootFolder: File = File(path)
     private var filesAndFolders: Array<File>? = null
 
-    @Inject
-    lateinit var selectAllFilesUseCase: SelectAllFilesUseCase
     private lateinit var binding: FragmentFileManagerBinding
     private lateinit var fileAdapter: FileManagerAdapter
     private var isFirstOpenApp by Delegates.notNull<Boolean>()
@@ -47,7 +37,6 @@ class FileManagerFragment : BaseFragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentFileManagerBinding.inflate(inflater, container, false)
-
         fileAdapter = FileManagerAdapter(this)
 
         permission.launch(android.Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -67,59 +56,33 @@ class FileManagerFragment : BaseFragment() {
         return binding.root
     }
 
-    //  TODO: mb do smth else
     val permission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             when {
                 granted -> {
                     with(binding) {
+                        var titlePath: String = path
                         providePermissionButton.visibility = View.GONE
+                        backButton.visibility = View.VISIBLE
 
-                        enableSortButton.setOnClickListener {
-                            if (buttonPanelMotionLayout.currentState == R.id.start) {
-                                buttonPanelMotionLayout.transitionToEnd()
-                            } else {
-                                buttonPanelMotionLayout.transitionToStart()
-                            }
-                        }
+                        configEnableSortButton()
 
                         filesAndFolders = rootFolder.listFiles()
 
-                        showModifiedFilesButton.setOnClickListener {
-                            fileAdapter.differ.submitList(listOf())
-                            configEmptyFolderViewVisibility(listOf())
-                            if (isFirstOpenApp) {
-                                emptyFolderView.emptyFolderTextView.text =
-                                    getString(R.string.first_write_to_database)
-                            } else {
-                                emptyFolderView.emptyFolderTextView.text =
-                                    getString(R.string.storage_still_reading)
-                            }
-                        }
-
-                        showStorageFilesButton.setOnClickListener {
-                            fileManagerViewModel.sortFilesBy(SortBy.FILENAME_ASC)
-                            backButton.visibility = View.VISIBLE
-                        }
+                        configModifiedFilesButton()
 
                         readExternalStorage { list ->
-                            showModifiedFilesButton.setOnClickListener {
-                                fileAdapter.differ.submitList(list)
-                                configEmptyFolderViewVisibility(list)
-                                emptyFolderView.emptyFolderTextView.text =
-                                    getString(R.string.no_modified_files)
-                                backButton.visibility = View.GONE
-                            }
-                            showStorageFilesButton.setOnClickListener {
-                                fileManagerViewModel.sortFilesBy(SortBy.FILENAME_ASC)
-                                backButton.visibility = View.VISIBLE
-                            }
+                            makeSnackbar(
+                                binding.buttonPanelMotionLayout,
+                                getString(R.string.reading_is_over)
+                            )
                         }
-
                         fileManagerViewModel.parentPath.observe(viewLifecycleOwner) { parentPath ->
                             (requireActivity() as MainActivity).supportActionBar?.title = parentPath
+                            titlePath = parentPath
                             configBackButton(parentPath)
                             sortByLinearLayout.configSorting()
+                            configShowingStorage(titlePath)
 
                             val root = File(parentPath)
                             val filesAndFolders = root.listFiles()
@@ -138,131 +101,16 @@ class FileManagerFragment : BaseFragment() {
                     }
                 }
                 !shouldShowRequestPermissionRationale(android.Manifest.permission.READ_EXTERNAL_STORAGE) -> {
-                    makeSnackbar(binding.buttonPanelMotionLayout, getString(R.string.reading_needed))
+                    makeSnackbar(
+                        binding.buttonPanelMotionLayout,
+                        getString(R.string.reading_needed)
+                    )
                 }
                 else -> {
-                    binding.configEmptyFolderViewVisibility(listOf())
-                    binding.providePermissionButton.visibility = View.VISIBLE
+                    binding.configShowingNotGrantedPermissionView()
                 }
             }
         }
-
-    //minimal
-    private fun readExternalStorage(onComplete: (List<File>) -> Unit) {
-        if (isFirstOpenApp) {
-            saveStorageFilesOnFirstOpenApp(onComplete)
-        } else {
-            checkModifiedFilesOnNotFirstOpenApp(onComplete)
-        }
-    }
-
-    private fun checkModifiedFilesOnNotFirstOpenApp(onComplete: (List<File>) -> Unit) {
-        GlobalScope.launch(Dispatchers.IO) {
-            val databaseJob = async(Dispatchers.IO) {
-                selectAllFilesUseCase.execute()
-            }
-
-            val externalDir = Environment.getExternalStorageDirectory()
-            val fileList = mutableListOf<FileChecksum>()
-            val preferences = requireActivity().getSharedPreferences(
-                MainActivity.APP_PREFERENCES,
-                Context.MODE_PRIVATE
-            )
-
-            val closedTime = preferences.getLong(
-                MainActivity.CLOSE_APP_TIME_PREFERENCE,
-                System.currentTimeMillis()
-            )
-
-            val databaseFiles = databaseJob.await()
-            val modifiedFilesList: MutableList<File> = mutableListOf()
-            readStorageForFindModifiedFiles(
-                directory = externalDir,
-                fileList = fileList,
-                closedTime = closedTime,
-                onFileFound = {
-                    val last = fileList.last()
-                    for (file in databaseFiles) {
-                        if (file.path == last.path) {
-                            if (file.checksum != last.checksum) {
-                                modifiedFilesList.add(FileMapper.toFile(last))
-                            }
-                        }
-                    }
-                }
-            )
-            fileManagerViewModel.insertAll(fileList)
-            withContext(Dispatchers.Main) {
-                makeSnackbar(binding.buttonPanelMotionLayout, getString(R.string.reading_is_over))
-                binding.emptyFolderView.emptyFolderTextView.text = getString(R.string.no_modified_files)
-                onComplete(modifiedFilesList)
-            }
-        }
-    }
-
-    private fun apacheReadDirectory(directory: File, fileList: MutableList<File>) {
-        val files = FileUtils.listFiles(directory, null, true)
-        fileList.addAll(files)
-    }
-
-    private fun readStorageForFindModifiedFiles(
-        directory: File,
-        fileList: MutableList<FileChecksum>,
-        onFileFound: () -> Unit,
-        closedTime: Long
-    ) {
-        val files = directory.listFiles() ?: return
-
-        for (file in files) {
-            if (file.isDirectory) {
-                if (file.lastModified() > closedTime) {
-                    readStorageForFindModifiedFiles(file, fileList, onFileFound, closedTime)
-                }
-            } else {
-                if (file.lastModified() > closedTime) {
-                    fileList.add(FileChecksum(
-                        path = file.path,
-                        checksum = Md5Provider.getMd5Checksum(file.absolutePath)
-                    ))
-                    onFileFound()
-                }
-            }
-        }
-    }
-
-    @OptIn(DelicateCoroutinesApi::class)
-    fun saveStorageFilesOnFirstOpenApp(onComplete: (List<File>) -> Unit) {
-        GlobalScope.launch(Dispatchers.IO) {
-            val externalDir = Environment.getExternalStorageDirectory()
-            val fileList = mutableListOf<File>()
-
-            val readJob = launch(Dispatchers.IO) {
-                apacheReadDirectory(externalDir, fileList)
-            }
-
-            val databaseJob = async(Dispatchers.IO) {
-                selectAllFilesUseCase.execute()
-            }
-            readJob.join()
-            val storageFilesList = FileMapper.toFileChecksums(fileList)
-            val modifiedFilesList: MutableList<File> = mutableListOf()
-            val databaseFilesList = databaseJob.await()
-            val storageFilesMap = storageFilesList.associateBy { it.path }
-
-            for (file in databaseFilesList) {
-                val storageFile = storageFilesMap[file.path]
-                if (storageFile != null && storageFile.checksum == file.checksum) {
-                    modifiedFilesList.add(FileMapper.toFile(file))
-                }
-            }
-            fileManagerViewModel.insertAll(storageFilesList)
-            withContext(Dispatchers.Main) {
-                makeSnackbar(binding.buttonPanelMotionLayout, getString(R.string.reading_is_over))
-                onComplete(modifiedFilesList)
-            }
-        }
-    }
-
 
     override fun onResume() {
         super.onResume()
@@ -271,30 +119,59 @@ class FileManagerFragment : BaseFragment() {
         }
     }
 
-    private fun PartSortRadioGroupBinding.configSorting() {
-
-        sortByDateAscButton.setOnClickListener {
-            fileManagerViewModel.sortFilesBy(SortBy.DATE_OF_CREATION_ASC)
+    private fun FragmentFileManagerBinding.configModifiedFilesButton() {
+        fileManagerViewModel.modifiedList.observe(viewLifecycleOwner) { list ->
+            if (isFirstOpenApp) {
+                showModifiedFilesButton.setOnClickListener {
+                    configEmptyFolderViewVisibility(listOf())
+                    fileAdapter.differ.submitList(listOf())
+                    emptyFolderView.emptyFolderTextView.text =
+                        getString(R.string.first_write_to_database)
+                }
+            } else {
+                showModifiedFilesButton.setOnClickListener {
+                    (requireActivity() as MainActivity).supportActionBar?.title =
+                        getString(R.string.modified_files)
+                    fileAdapter.differ.submitList(list)
+                    configEmptyFolderViewVisibility(list)
+                    emptyFolderView.emptyFolderTextView.text =
+                        getString(R.string.no_modified_files)
+                    backButton.visibility = View.GONE
+                }
+            }
         }
-        sortByDateDescButton.setOnClickListener {
-            fileManagerViewModel.sortFilesBy(SortBy.DATE_OF_CREATION_DESC)
-        }
-        sortByExtensionAscButton.setOnClickListener {
-            fileManagerViewModel.sortFilesBy(SortBy.EXTENSION_ASC)
-        }
-        sortByExtensionDescButton.setOnClickListener {
-            fileManagerViewModel.sortFilesBy(SortBy.EXTENSION_DESC)
-        }
-        sortBySizeAscButton.setOnClickListener {
-            fileManagerViewModel.sortFilesBy(SortBy.SIZE_ASC)
-        }
-        sortBySizeDescButton.setOnClickListener {
-            fileManagerViewModel.sortFilesBy(SortBy.SIZE_DESC)
-        }
-
     }
 
-    //TODO: mb hide view
+    private fun FragmentFileManagerBinding.configShowingNotGrantedPermissionView() {
+        configEmptyFolderViewVisibility(listOf())
+        emptyFolderView.emptyFolderTextView.text =
+            getString(R.string.please_allow_permission)
+        providePermissionButton.visibility = View.VISIBLE
+        backButton.visibility = View.GONE
+        fileManagerViewModel.setIsReadingIsWorking(false)
+    }
+
+    private fun FragmentFileManagerBinding.configShowingStorage(
+        titlePath: String
+    ) {
+        showStorageFilesButton.setOnClickListener {
+            (requireActivity() as MainActivity).supportActionBar?.title =
+                titlePath
+            fileManagerViewModel.sortFilesBy(SortBy.FILENAME_ASC)
+            backButton.visibility = View.VISIBLE
+        }
+    }
+
+    private fun FragmentFileManagerBinding.configEnableSortButton() {
+        enableSortButton.setOnClickListener {
+            if (buttonPanelMotionLayout.currentState == R.id.start) {
+                buttonPanelMotionLayout.transitionToEnd()
+            } else {
+                buttonPanelMotionLayout.transitionToStart()
+            }
+        }
+    }
+
     private fun FragmentFileManagerBinding.configBackButton(parentPath: String) {
         backButton.setOnClickListener {
             if (parentPath != path) {
@@ -324,7 +201,48 @@ class FileManagerFragment : BaseFragment() {
         }
     }
 
-    companion object {
-        const val TAG = "TAG"
+
+    private fun PartSortRadioGroupBinding.configSorting() {
+        sortByDateAscButton.setOnClickListener {
+            fileManagerViewModel.sortFilesBy(SortBy.DATE_OF_CREATION_ASC)
+        }
+        sortByDateDescButton.setOnClickListener {
+            fileManagerViewModel.sortFilesBy(SortBy.DATE_OF_CREATION_DESC)
+        }
+        sortByExtensionAscButton.setOnClickListener {
+            fileManagerViewModel.sortFilesBy(SortBy.EXTENSION_ASC)
+        }
+        sortByExtensionDescButton.setOnClickListener {
+            fileManagerViewModel.sortFilesBy(SortBy.EXTENSION_DESC)
+        }
+        sortBySizeAscButton.setOnClickListener {
+            fileManagerViewModel.sortFilesBy(SortBy.SIZE_ASC)
+        }
+        sortBySizeDescButton.setOnClickListener {
+            fileManagerViewModel.sortFilesBy(SortBy.SIZE_DESC)
+        }
     }
+
+    private fun readExternalStorage(onComplete: (List<File>) -> Unit) {
+        fileManagerViewModel.isReadingIsWorking.observe(viewLifecycleOwner) {
+            if (!it) {
+                if (isFirstOpenApp) {
+                    fileManagerViewModel.saveStorageFilesOnFirstOpenApp(onComplete)
+                } else {
+                    val preferences = requireActivity().getSharedPreferences(
+                        MainActivity.APP_PREFERENCES,
+                        Context.MODE_PRIVATE
+                    )
+
+                    val closedTime = preferences.getLong(
+                        MainActivity.CLOSE_APP_TIME_PREFERENCE,
+                        System.currentTimeMillis()
+                    )
+                    fileManagerViewModel.checkModifiedFilesOnNotFirstOpenApp(onComplete, closedTime)
+                }
+                fileManagerViewModel.setIsReadingIsWorking(true)
+            }
+        }
+    }
+
 }

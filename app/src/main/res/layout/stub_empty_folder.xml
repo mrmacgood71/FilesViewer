@@ -12,7 +12,7 @@
         android:layout_height="match_parent"
 
         android:layout_weight="0.5"
-        app:srcCompat="@drawable/picture_empty_folder" />
+        app:srcCompat="@drawable/picture_empty_folder2" />
 
     <TextView
         android:id="@+id/emptyFolderTextView"

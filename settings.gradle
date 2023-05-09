@@ -16,3 +16,5 @@ rootProject.name = "VkFileManager"
 include ':app'
 include ':core'
 include ':core:customs'
+include ':domain'
+include ':data'

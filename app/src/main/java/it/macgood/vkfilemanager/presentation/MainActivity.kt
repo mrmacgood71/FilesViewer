@@ -11,7 +11,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import it.macgood.core.extension.viewBinding
 import it.macgood.vkfilemanager.R
 import it.macgood.vkfilemanager.databinding.ActivityMainBinding
-import it.macgood.vkfilemanager.presentation.filemanager.FileManagerFragment.Companion.TAG
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -28,8 +27,6 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
         val navController = navHostFragment.navController
         setupActionBarWithNavController(navController)
-
-
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -39,12 +36,12 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         val preferences = getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
-        Log.d(TAG, "onDestroy: ${System.currentTimeMillis()}")
         preferences.edit().putLong(CLOSE_APP_TIME_PREFERENCE, System.currentTimeMillis()).apply()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        Log.d("TAG", "onDestroy: ")
     }
 
     companion object {

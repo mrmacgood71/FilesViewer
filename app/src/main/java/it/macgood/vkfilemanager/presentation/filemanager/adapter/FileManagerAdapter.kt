@@ -17,7 +17,7 @@ import it.macgood.vkfilemanager.R
 import it.macgood.vkfilemanager.databinding.ItemFileBinding
 import it.macgood.vkfilemanager.databinding.ItemLegendBinding
 import it.macgood.vkfilemanager.presentation.filemanager.FileManagerFragment
-import it.macgood.vkfilemanager.utils.FileUtils
+import it.macgood.vkfilemanager.presentation.utils.FileUtils
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
