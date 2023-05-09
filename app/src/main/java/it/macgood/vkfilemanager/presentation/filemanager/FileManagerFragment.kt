@@ -1,5 +1,6 @@
 package it.macgood.vkfilemanager.presentation.filemanager
 
+import android.content.res.Resources
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
@@ -12,7 +13,9 @@ import com.google.common.io.Files
 import com.google.common.io.Files.isFile
 import dagger.hilt.android.AndroidEntryPoint
 import it.macgood.core.fragment.BaseFragment
+import it.macgood.vkfilemanager.R
 import it.macgood.vkfilemanager.databinding.FragmentFileManagerBinding
+import it.macgood.vkfilemanager.databinding.PartSortRadioGroupBinding
 import it.macgood.vkfilemanager.domain.usecase.SelectAllFilesUseCase
 import it.macgood.vkfilemanager.presentation.MainActivity
 import it.macgood.vkfilemanager.presentation.filemanager.adapter.FileManagerAdapter
@@ -63,25 +66,33 @@ class FileManagerFragment : BaseFragment() {
                 granted -> {
                     with(binding) {
                         providePermissionButton.visibility = View.GONE
+                        enableSortButton?.setOnClickListener {
+                            if (buttonPanelMotionLayout?.currentState == R.id.start) {
+                                buttonPanelMotionLayout.transitionToEnd()
+                            } else {
+                                buttonPanelMotionLayout?.transitionToStart()
+                            }
+                        }
+
                         filesAndFolders = rootFolder.listFiles()
 
                         readExternalStorage { list ->
-                            showModifiedFilesButton?.text = "Modified"
                             showModifiedFilesButton?.setOnClickListener {
                                 fileAdapter.differ.submitList(list)
                                 configEmptyFolderViewVisibility(list)
-                                binding.emptyFolderView.emptyFolderTextView.text = "No modified files"
-                                binding.backButton.visibility = View.GONE
+                                emptyFolderView.emptyFolderTextView.text = "No modified files"
+                                backButton.visibility = View.GONE
                             }
                             showStorageFilesButton?.setOnClickListener {
                                 fileManagerViewModel.sortFilesBy(SortBy.FILENAME_ASC)
-                                binding.backButton.visibility = View.VISIBLE
+                                backButton.visibility = View.VISIBLE
                             }
                         }
                         fileManagerViewModel.parentPath.observe(viewLifecycleOwner) { parentPath ->
                             (requireActivity() as MainActivity).supportActionBar?.title = parentPath
                             configBackButton(parentPath)
-                            configSorting()
+                            sortByLinearLayout?.configSorting()
+
                             val root = File(parentPath)
                             val filesAndFolders = root.listFiles()
                             fileManagerViewModel.setRootFiles(
@@ -151,11 +162,7 @@ class FileManagerFragment : BaseFragment() {
         fileList.addAll(files)
     }
 
-//    fun guavaReadDirectory(directory: File, fileList: MutableList<File>) {
-//        val files = Files.fileTreeTraverser().preOrderTraversal(directory).filter { it.isFile }
-//        fileList.addAll(files)
-//    }
-
+//  сразу в checksum
     fun readDirectory(directory: File, fileList: MutableList<File>) {
         val files = directory.listFiles() ?: return
 
@@ -175,7 +182,8 @@ class FileManagerFragment : BaseFragment() {
         }
     }
 
-    private fun FragmentFileManagerBinding.configSorting() {
+    private fun PartSortRadioGroupBinding.configSorting() {
+
         sortByDateAscButton.setOnClickListener {
             fileManagerViewModel.sortFilesBy(SortBy.DATE_OF_CREATION_ASC)
         }

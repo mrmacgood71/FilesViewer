@@ -27,8 +27,6 @@ class FileManagerViewModel @Inject constructor(
     private val _rootFiles: MutableLiveData<List<File>> = MutableLiveData()
     val rootFiles: LiveData<List<File>> = _rootFiles
 
-    val selectAll: MutableLiveData<List<FileChecksum>> = MutableLiveData()
-
     init {
         val path = Environment.getExternalStorageDirectory().path
         val root = File(path)
@@ -48,10 +46,6 @@ class FileManagerViewModel @Inject constructor(
         if (files != null) {
             _rootFiles.postValue(files!!)
         }
-    }
-
-    fun selectAllFiles() = viewModelScope.launch {
-        selectAll.postValue(selectAllFilesUseCase.execute())
     }
 
     fun sortFilesBy(sortBy: SortBy) {
