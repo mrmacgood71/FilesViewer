@@ -44,10 +44,6 @@ class FileManagerViewModel @Inject constructor(
         _isReadingIsWorking.postValue(false)
     }
 
-    fun insertAll(filesChecksum: List<FileChecksum>) = viewModelScope.launch {
-        insertAllFilesUseCase.execute(filesChecksum)
-    }
-
     fun setParentPath(path: String) {
         _parentPath.postValue(path)
     }
@@ -91,14 +87,13 @@ class FileManagerViewModel @Inject constructor(
     @OptIn(DelicateCoroutinesApi::class)
     fun checkModifiedFilesOnNotFirstOpenApp(
         onComplete: (List<File>) -> Unit,
+        externalDir: File,
         closedTime: Long
     ) {
         GlobalScope.launch(Dispatchers.IO) {
             val databaseJob = async(Dispatchers.IO) {
                 selectAllFilesUseCase.execute()
             }
-
-            val externalDir = Environment.getExternalStorageDirectory()
             val fileList = mutableListOf<FileChecksum>()
 
             val databaseFiles = databaseJob.await()
@@ -109,9 +104,14 @@ class FileManagerViewModel @Inject constructor(
                 closedTime = closedTime
             ) {
                 val last = fileList.last()
-                for (file in databaseFiles) {
-                    if (file.path == last.path) {
-                        if (file.checksum == last.checksum) {
+                val newFile = databaseFiles.find { it.path == last.path }
+                if (newFile == null) {
+                    modifiedFilesList.add(FileMapper.toFile(last))
+                } else {
+                    val fileMap = databaseFiles.associateBy { it.path }
+                    for (last in fileList) {
+                        val file = fileMap[last.path]
+                        if (file != null && file.checksum != last.checksum) {
                             modifiedFilesList.add(FileMapper.toFile(last))
                         }
                     }
@@ -126,9 +126,11 @@ class FileManagerViewModel @Inject constructor(
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun saveStorageFilesOnFirstOpenApp(onComplete: (List<File>) -> Unit) {
+    fun saveStorageFilesOnFirstOpenApp(
+        onComplete: (List<File>) -> Unit,
+        externalDir: File
+    ) {
         GlobalScope.launch(Dispatchers.IO) {
-            val externalDir = Environment.getExternalStorageDirectory()
             val fileList = mutableListOf<File>()
 
             val readJob = launch(Dispatchers.IO) {
@@ -158,4 +160,7 @@ class FileManagerViewModel @Inject constructor(
         }
     }
 
+    private fun insertAll(filesChecksum: List<FileChecksum>) = viewModelScope.launch {
+        insertAllFilesUseCase.execute(filesChecksum)
+    }
 }

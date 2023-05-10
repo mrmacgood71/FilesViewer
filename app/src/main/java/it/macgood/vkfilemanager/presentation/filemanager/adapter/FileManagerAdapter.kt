@@ -2,6 +2,7 @@ package it.macgood.vkfilemanager.presentation.filemanager.adapter
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,7 +19,11 @@ import it.macgood.vkfilemanager.databinding.ItemFileBinding
 import it.macgood.vkfilemanager.databinding.ItemLegendBinding
 import it.macgood.vkfilemanager.presentation.filemanager.FileManagerFragment
 import it.macgood.vkfilemanager.presentation.utils.FileUtils
+import it.macgood.vkfilemanager.presentation.utils.FileUtils.convertTime
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.attribute.BasicFileAttributes
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -79,9 +84,6 @@ class FileManagerAdapter(
     private fun ItemFileBinding.openFileInfo(
         file: File
     ) {
-        val date = SimpleDateFormat("dd.MM.yyyy HH:mm").format(
-            Date(file.lastModified())
-        )
         fileInfoButton.setOnClickListener {
             it.findNavController()
                 .navigate(
@@ -89,7 +91,7 @@ class FileManagerAdapter(
                     bundleOf(
                         "name" to file.name,
                         "size" to FileUtils.countFileSize(file),
-                        "dateOfCreation" to date
+                        "dateOfCreation" to file.lastModified().convertTime()
                     )
                 )
         }
@@ -126,7 +128,7 @@ class FileManagerAdapter(
         intent.setDataAndType(fileUri, mimeType)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
         intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-        Intent.createChooser(intent, "Open with: ")
+        Intent.createChooser(intent, it.context.getString(R.string.open_with))
         it.context.startActivity(intent)
     }
 
@@ -145,7 +147,7 @@ class FileManagerAdapter(
 
         intent.setDataAndType(fileUri, mimeType)
         intent.putExtra(Intent.EXTRA_STREAM, fileUri)
-        Intent.createChooser(intent, "Open with: ")
+        Intent.createChooser(intent, it.context.getString(R.string.open_with))
 
         it.context.startActivity(intent)
     }

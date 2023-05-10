@@ -12,7 +12,6 @@ import androidx.room.PrimaryKey
 data class FileChecksum(
     @PrimaryKey(autoGenerate = true)
     val id: Int? = null,
-    //TODO: make unique
     @ColumnInfo(name = "path")
     val path: String,
     val checksum: String

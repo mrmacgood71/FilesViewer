@@ -56,7 +56,7 @@ class FileManagerFragment : BaseFragment() {
         return binding.root
     }
 
-    val permission =
+    private val permission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             when {
                 granted -> {
@@ -227,7 +227,7 @@ class FileManagerFragment : BaseFragment() {
         fileManagerViewModel.isReadingIsWorking.observe(viewLifecycleOwner) {
             if (!it) {
                 if (isFirstOpenApp) {
-                    fileManagerViewModel.saveStorageFilesOnFirstOpenApp(onComplete)
+                    fileManagerViewModel.saveStorageFilesOnFirstOpenApp(onComplete, rootFolder)
                 } else {
                     val preferences = requireActivity().getSharedPreferences(
                         MainActivity.APP_PREFERENCES,
@@ -236,9 +236,13 @@ class FileManagerFragment : BaseFragment() {
 
                     val closedTime = preferences.getLong(
                         MainActivity.CLOSE_APP_TIME_PREFERENCE,
-                        System.currentTimeMillis()
+                    0L
                     )
-                    fileManagerViewModel.checkModifiedFilesOnNotFirstOpenApp(onComplete, closedTime)
+                    fileManagerViewModel.checkModifiedFilesOnNotFirstOpenApp(
+                        onComplete,
+                        rootFolder,
+                        closedTime
+                    )
                 }
                 fileManagerViewModel.setIsReadingIsWorking(true)
             }

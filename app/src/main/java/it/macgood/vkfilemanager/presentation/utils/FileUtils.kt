@@ -1,13 +1,36 @@
 package it.macgood.vkfilemanager.presentation.utils
 
+import android.util.Log
 import it.macgood.domain.model.FileChecksum
+import it.macgood.vkfilemanager.presentation.filemanager.mapper.FileMapper
 import org.apache.commons.io.FileUtils
 import java.io.File
 import java.io.IOException
 import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
+import java.text.SimpleDateFormat
+import java.util.*
 
 object FileUtils {
+
+    fun Long.determineFileSize() = when {
+        this > 1024L * 1024L * 1024L -> "%.2f GB".format(this.toDouble() / (1024L * 1024L * 1024L))
+        this > 1024 * 1024 -> "%.2f MB".format(this.toDouble() / (1024 * 1024))
+        this > 1024 -> "%.2f KB".format(this.toDouble() / 1024)
+        else -> "$this B"
+    }
+
+    fun Long.convertTime(): String {
+        val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+        return dateFormat.format(Date(this))
+    }
+
+//    fun File.findAppropriateDrawable() =
+//        if (this.isDirectory) R.drawable.folder
+//        else if (this.path.endsWith(".txt")) R.drawable.txt
+//        else if (this.path.endsWith(".pdf")) R.drawable.pdf
+//        else if (this.path.endsWith(".docx")) R.drawable.docx
+//        else R.drawable.file
 
     fun countFileSize(file: File): Long {
         val path = Paths.get(file.absolutePath)
@@ -22,7 +45,7 @@ object FileUtils {
                 return FileVisitResult.CONTINUE
             }
         })
-        return totalSize / 1024
+        return totalSize
     }
 
     fun apacheReadDirectory(directory: File, fileList: MutableList<File>) {
@@ -37,23 +60,26 @@ object FileUtils {
         onFileFound: () -> Unit
     ) {
         val files = directory.listFiles() ?: return
+        val timestamp = closedTime.convertTime()
+        Log.d("TAG", "readStorageForFindModifiedFiles: $timestamp")
 
         for (file in files) {
             if (file.isDirectory) {
-                if (file.lastModified() > closedTime) {
-                    readStorageForFindModifiedFiles(file, fileList, closedTime,  onFileFound)
+                val paths = Paths.get(file.path)
+                val attrs = Files.readAttributes(paths, BasicFileAttributes::class.java)
+                Log.d("TAG", "readStorageForFindModifiedFiles: ${attrs.lastModifiedTime()}")
+                if (attrs.lastModifiedTime().toMillis() > closedTime) {
+                    readStorageForFindModifiedFiles(file, fileList, closedTime, onFileFound)
                 }
             } else {
                 if (file.lastModified() > closedTime) {
-                    fileList.add(
-                        FileChecksum(
-                            path = file.path,
-                            checksum = Md5Provider.getMd5Checksum(file.absolutePath)
-                        )
-                    )
+                    fileList.add(FileMapper.toFileChecksum(file))
                     onFileFound()
                 }
             }
         }
     }
+
 }
+
+

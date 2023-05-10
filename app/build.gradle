@@ -71,9 +71,6 @@ dependencies {
     implementation Libs.Android.NavigationFragment
     implementation Libs.Android.NavigationUi
 
-//    Glide
-    implementation Libs.Glide.Glide
-    kapt Libs.Glide.GlideCompiler
 
 //    Ui
     implementation Libs.Android.AppCompat
