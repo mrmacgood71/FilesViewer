@@ -1,0 +1,89 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'dagger.hilt.android.plugin'
+    id 'kotlin-kapt'
+    id 'kotlin-parcelize'
+}
+
+android {
+    namespace 'it.macgood.data'
+    compileSdk 33
+
+    defaultConfig {
+        minSdk 26
+        targetSdk 33
+
+        kapt {
+            arguments {
+                arg("room.schemaLocation", "$projectDir/schemas")
+            }
+        }
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+kapt {
+    correctErrorTypes = true
+}
+
+dependencies {
+
+//    Core
+    implementation Libs.Android.CoreKtx
+
+//    Coroutines
+    implementation Libs.Android.CoroutinesCore
+    implementation Libs.Android.CoroutinesAndroid
+
+//    Room
+    implementation Libs.Database.RoomKtx
+    implementation Libs.Database.RoomRuntime
+    kapt Libs.Database.RoomCompiler
+
+//    Hilt
+    implementation Libs.DI.Hilt
+    kapt Libs.DI.HiltCompiler
+
+//    Navigation Components
+    implementation Libs.Android.NavigationFragment
+    implementation Libs.Android.NavigationUi
+
+//    Glide
+    implementation Libs.Glide.Glide
+    kapt Libs.Glide.GlideCompiler
+
+//    Ui
+    implementation Libs.Android.AppCompat
+    implementation Libs.Android.ActivityKtx
+    implementation Libs.Android.FragmentKtx
+
+    implementation Libs.Android.Material
+    implementation Libs.Android.ConstraintLayout
+    implementation Libs.Ui.Shimmer
+
+//    Test
+    testImplementation Libs.Test.JUnit
+    androidTestImplementation Libs.Test.ExtJUnit
+    androidTestImplementation Libs.Test.EspressoCore
+
+    implementation 'commons-io:commons-io:2.11.0'
+
+    implementation project(":domain")
+}

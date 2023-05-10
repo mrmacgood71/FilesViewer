@@ -11,4 +11,8 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
+    @Provides
+    @Singleton
+    fun provideExternalStoragePath(): String = Environment.getExternalStorageDirectory().path
+
 }

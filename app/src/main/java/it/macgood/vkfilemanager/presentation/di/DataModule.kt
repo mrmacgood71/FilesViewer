@@ -7,7 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import it.macgood.vkfilemanager.data.database.FileDatabase
+import it.macgood.data.database.FileDatabase
 import javax.inject.Singleton
 
 @Module
@@ -21,6 +21,5 @@ object DataModule {
     @Provides
     @Singleton
     fun provideFileDao(database: FileDatabase) = database.getFileDao()
-
 
 }

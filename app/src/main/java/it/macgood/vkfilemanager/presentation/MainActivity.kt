@@ -1,6 +1,8 @@
 package it.macgood.vkfilemanager.presentation
 
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -14,6 +16,7 @@ import it.macgood.vkfilemanager.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
 
     private val binding by viewBinding(ActivityMainBinding::inflate)
+
     private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,5 +31,22 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp() || super.onSupportNavigateUp()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        val preferences = getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
+        preferences.edit().putLong(CLOSE_APP_TIME_PREFERENCE, System.currentTimeMillis()).apply()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("TAG", "onDestroy: ")
+    }
+
+    companion object {
+        const val APP_PREFERENCES = "APP_PREFERENCES"
+        const val FIRST_OPEN_APP_PREFERENCE = "FIRST_OPEN_APP_PREFERENCES"
+        const val CLOSE_APP_TIME_PREFERENCE = "CLOSE_APP_TIME_PREFERENCE"
     }
 }

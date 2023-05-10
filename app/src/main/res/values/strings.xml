@@ -1,6 +1,16 @@
 <resources>
-    <string name="app_name">VkFileManager</string>
-    <!-- TODO: Remove or change this placeholder text -->
+    <string name="app_name">FileManager</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="up">/...</string>
+    <string name="first_write_to_database">It is first app open, storage is reading and writing to database</string>
+    <string name="storage_still_reading">Storage is still reading</string>
+    <string name="no_modified_files">No modified files</string>
+    <string name="reading_is_over">Files reading is over</string>
+    <string name="reading_is_not_over">Files reading is over</string>
+    <string name="top_level_remind">You are at the top level</string>
+    <string name="empty_folder">This folder is empty :(</string>
+    <string name="reading_needed">Reading is needed</string>
+    <string name="modified_files">Modified Files</string>
+    <string name="please_allow_permission">Please allow permission, without it, the app won\'t work :(</string>
+    <string name="open_with">\"Open with: \"</string>
 </resources>

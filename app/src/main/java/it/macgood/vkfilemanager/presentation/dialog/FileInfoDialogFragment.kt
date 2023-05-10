@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import it.macgood.vkfilemanager.databinding.FragmentFileInfoDialogBinding
+import it.macgood.vkfilemanager.presentation.utils.FileUtils.determineFileSize
 
 class FileInfoDialogFragment : DialogFragment() {
 
@@ -22,7 +23,7 @@ class FileInfoDialogFragment : DialogFragment() {
 
         binding = FragmentFileInfoDialogBinding.inflate(inflater, container, false)
         binding.fileNameTextView.text = name
-        binding.fileSizeTextView.text = size.toString() + "Kb"
+        binding.fileSizeTextView.text = size?.determineFileSize()
         binding.fileDateOfCreationTextView.text = dateOfCreation.toString()
 
         return binding.root
