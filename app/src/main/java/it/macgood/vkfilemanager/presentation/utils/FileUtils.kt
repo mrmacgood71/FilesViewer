@@ -1,6 +1,5 @@
 package it.macgood.vkfilemanager.presentation.utils
 
-import android.util.Log
 import it.macgood.domain.model.FileChecksum
 import it.macgood.vkfilemanager.presentation.filemanager.mapper.FileMapper
 import org.apache.commons.io.FileUtils
@@ -46,29 +45,68 @@ object FileUtils {
         fileList.addAll(files)
     }
 
+//    fun readStorageForFindModifiedFiles(
+//        directory: File,
+//        fileList: MutableList<FileChecksum>,
+//        closedTime: Long,
+//        onFileFound: () -> Unit
+//    ) {
+//        val files = directory.listFiles() ?: return
+//
+//        for (file in files) {
+//            if (file.isDirectory) {
+//                val paths = Paths.get(file.path)
+//                val attrs = Files.readAttributes(paths, BasicFileAttributes::class.java)
+//                if (attrs.lastModifiedTime().toMillis() > closedTime) {
+//                    readStorageForFindModifiedFiles(file, fileList, closedTime, onFileFound)
+//                }
+//            } else {
+//                if (file.lastModified() > closedTime) {
+//                    fileList.add(FileMapper.toFileChecksum(file))
+//                    onFileFound()
+//                }
+//            }
+//        }
+//    }
+
     fun readStorageForFindModifiedFiles(
         directory: File,
         fileList: MutableList<FileChecksum>,
         closedTime: Long,
+        depth: Int,
         onFileFound: () -> Unit
     ) {
         val files = directory.listFiles() ?: return
+
+        var folderModified = false
 
         for (file in files) {
             if (file.isDirectory) {
                 val paths = Paths.get(file.path)
                 val attrs = Files.readAttributes(paths, BasicFileAttributes::class.java)
+
                 if (attrs.lastModifiedTime().toMillis() > closedTime) {
-                    readStorageForFindModifiedFiles(file, fileList, closedTime, onFileFound)
+                    folderModified = true
+                    readStorageForFindModifiedFiles(file, fileList, closedTime, depth + 1, onFileFound)
                 }
             } else {
                 if (file.lastModified() > closedTime) {
                     fileList.add(FileMapper.toFileChecksum(file))
                     onFileFound()
+                    folderModified = true
+                }
+            }
+        }
+
+        if (!folderModified && depth < 2) {
+            for (file in files) {
+                if (file.isDirectory) {
+                    readStorageForFindModifiedFiles(file, fileList, closedTime, depth + 1, onFileFound)
                 }
             }
         }
     }
+
 
 }
 

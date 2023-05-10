@@ -77,7 +77,8 @@ class FileManagerViewModel @Inject constructor(
             FileUtils.readStorageForFindModifiedFiles(
                 directory = externalDir,
                 fileList = fileList,
-                closedTime = closedTime
+                closedTime = closedTime,
+                depth = 0
             ) {
                 val last = fileList.last()
                 val newFile = databaseFiles.find { it.path == last.path }
