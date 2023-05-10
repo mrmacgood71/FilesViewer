@@ -15,7 +15,7 @@ import it.macgood.vkfilemanager.databinding.FragmentFileManagerBinding
 import it.macgood.vkfilemanager.databinding.PartSortRadioGroupBinding
 import it.macgood.vkfilemanager.presentation.MainActivity
 import it.macgood.vkfilemanager.presentation.filemanager.adapter.FileManagerAdapter
-import it.macgood.vkfilemanager.presentation.filemanager.model.SortBy
+import it.macgood.domain.model.SortBy
 import java.io.File
 import kotlin.properties.Delegates
 
@@ -114,19 +114,33 @@ class FileManagerFragment : BaseFragment() {
 
     override fun onResume() {
         super.onResume()
-        fileManagerViewModel.rootFiles.observe(viewLifecycleOwner) {
-            fileAdapter.differ.submitList(it)
+        fileManagerViewModel.parentPath.observe(viewLifecycleOwner) {
+            binding.configShowingStorage(it)
         }
     }
 
     private fun FragmentFileManagerBinding.configModifiedFilesButton() {
+
+        showModifiedFilesButton.setOnClickListener {
+            configEmptyFolderViewVisibility(listOf())
+            fileAdapter.differ.submitList(listOf())
+            emptyFolderView.emptyFolderTextView.text =
+                getString(R.string.reading_is_not_over)
+            enableSortButton.alpha = 0.5f
+            enableSortButton.setOnClickListener { null }
+        }
+
         fileManagerViewModel.modifiedList.observe(viewLifecycleOwner) { list ->
             if (isFirstOpenApp) {
+
+                showModifiedFilesButton.setOnClickListener { null }
                 showModifiedFilesButton.setOnClickListener {
                     configEmptyFolderViewVisibility(listOf())
                     fileAdapter.differ.submitList(listOf())
                     emptyFolderView.emptyFolderTextView.text =
                         getString(R.string.first_write_to_database)
+                    enableSortButton.alpha = 0.5f
+                    enableSortButton.setOnClickListener { null }
                 }
             } else {
                 showModifiedFilesButton.setOnClickListener {
@@ -136,6 +150,8 @@ class FileManagerFragment : BaseFragment() {
                     configEmptyFolderViewVisibility(list)
                     emptyFolderView.emptyFolderTextView.text =
                         getString(R.string.no_modified_files)
+                    enableSortButton.alpha = 0.5f
+                    enableSortButton.setOnClickListener { null }
                     backButton.visibility = View.GONE
                 }
             }
@@ -159,6 +175,8 @@ class FileManagerFragment : BaseFragment() {
                 titlePath
             fileManagerViewModel.sortFilesBy(SortBy.FILENAME_ASC)
             backButton.visibility = View.VISIBLE
+            enableSortButton.alpha = 1f
+            configEnableSortButton()
         }
     }
 

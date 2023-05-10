@@ -73,10 +73,12 @@ class FileManagerAdapter(
         if (file.isDirectory) {
             fileIconImageView.setImageResource(R.drawable.ic_baseline_folder_24)
         } else {
-            if (file.extension == "jpg" || file.extension == "png") {
-                fileIconImageView.setImageURI(Uri.fromFile(file))
-            } else {
-                fileIconImageView.setImageResource(R.drawable.ic_baseline_insert_drive_file_24)
+            when(file.extension) {
+                "jpg", "jpeg", "png" -> fileIconImageView.setImageURI(Uri.fromFile(file))
+                "doc" -> fileIconImageView.setImageResource(R.drawable.picture_doc_file)
+                "pdf" -> fileIconImageView.setImageResource(R.drawable.picture_pdf_file)
+                "txt" -> fileIconImageView.setImageResource(R.drawable.picture_txt_file)
+                else -> fileIconImageView.setImageResource(R.drawable.ic_baseline_insert_drive_file_24)
             }
         }
     }

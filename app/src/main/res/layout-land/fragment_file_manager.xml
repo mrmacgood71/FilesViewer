@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".presentation.filemanager.FileManagerFragment">
+
+    <TextView
+        android:id="@+id/backButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:background="@drawable/background_selectable_item"
+        android:text="@string/up"
+        android:textAlignment="textStart"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/fileRecyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toTopOf="@+id/buttonPanelMotionLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/backButton" />
+
+
+    <androidx.constraintlayout.motion.widget.MotionLayout
+        android:id="@+id/buttonPanelMotionLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/FunctionBottomBarStyle"
+        app:layoutDescription="@xml/fragment_file_manager_scene"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:id="@+id/functionButtonLinearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:gravity="center"
+            style="@style/FunctionBottomBarStyle"
+            android:paddingStart="8dp"
+            android:paddingEnd="4dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Modified files:" />
+
+            <ImageButton
+                android:id="@+id/showModifiedFilesButton"
+                android:layout_width="8dp"
+                android:layout_height="56dp"
+                android:layout_marginStart="4dp"
+                android:layout_weight="0.5"
+                android:background="@drawable/background_selectable_item"
+                android:contentDescription="Modified Files"
+                android:src="@drawable/ic_baseline_mode_24"
+                android:text="Searching" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="Sort:" />
+
+            <ImageButton
+                android:id="@+id/enableSortButton"
+                android:layout_width="8dp"
+                android:layout_height="56dp"
+                android:layout_marginStart="4dp"
+                android:layout_weight="0.5"
+                android:background="@drawable/background_selectable_item"
+                android:src="@drawable/ic_baseline_sort_24" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="Storage:" />
+
+            <ImageButton
+                android:id="@+id/showStorageFilesButton"
+                android:layout_width="8dp"
+                android:layout_height="56dp"
+                android:layout_marginStart="4dp"
+                android:layout_weight="0.5"
+                android:background="@drawable/background_selectable_item"
+                android:src="@drawable/ic_baseline_storage_24"
+                android:text="Storage" />
+
+
+        </LinearLayout>
+
+        <HorizontalScrollView
+            android:id="@+id/sortByLayout"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:overScrollMode="never"
+            style="@style/FunctionBottomBarStyle"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/functionButtonLinearLayout">
+
+            <include
+                android:id="@+id/sortByLinearLayout"
+                layout="@layout/part_sort_radio_group" />
+
+        </HorizontalScrollView>
+
+    </androidx.constraintlayout.motion.widget.MotionLayout>
+
+    <include
+        android:id="@+id/emptyFolderView"
+        layout="@layout/stub_empty_folder"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="64dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/backButton" />
+
+    <Button
+        android:id="@+id/providePermissionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="128dp"
+        android:text="Provide Permission"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

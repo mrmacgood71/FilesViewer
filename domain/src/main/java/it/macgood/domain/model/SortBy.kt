@@ -1,4 +1,4 @@
-package it.macgood.vkfilemanager.presentation.filemanager.model
+package it.macgood.domain.model
 
 enum class SortBy {
     FILENAME_ASC,

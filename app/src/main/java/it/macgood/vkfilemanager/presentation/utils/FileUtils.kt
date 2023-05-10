@@ -25,13 +25,6 @@ object FileUtils {
         return dateFormat.format(Date(this))
     }
 
-//    fun File.findAppropriateDrawable() =
-//        if (this.isDirectory) R.drawable.folder
-//        else if (this.path.endsWith(".txt")) R.drawable.txt
-//        else if (this.path.endsWith(".pdf")) R.drawable.pdf
-//        else if (this.path.endsWith(".docx")) R.drawable.docx
-//        else R.drawable.file
-
     fun countFileSize(file: File): Long {
         val path = Paths.get(file.absolutePath)
         var totalSize = 0L
@@ -60,14 +53,11 @@ object FileUtils {
         onFileFound: () -> Unit
     ) {
         val files = directory.listFiles() ?: return
-        val timestamp = closedTime.convertTime()
-        Log.d("TAG", "readStorageForFindModifiedFiles: $timestamp")
 
         for (file in files) {
             if (file.isDirectory) {
                 val paths = Paths.get(file.path)
                 val attrs = Files.readAttributes(paths, BasicFileAttributes::class.java)
-                Log.d("TAG", "readStorageForFindModifiedFiles: ${attrs.lastModifiedTime()}")
                 if (attrs.lastModifiedTime().toMillis() > closedTime) {
                     readStorageForFindModifiedFiles(file, fileList, closedTime, onFileFound)
                 }

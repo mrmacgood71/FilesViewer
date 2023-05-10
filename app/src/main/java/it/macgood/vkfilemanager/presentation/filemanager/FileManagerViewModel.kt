@@ -1,7 +1,5 @@
 package it.macgood.vkfilemanager.presentation.filemanager
 
-import android.content.Context
-import android.os.Environment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -10,10 +8,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import it.macgood.domain.model.FileChecksum
 import it.macgood.domain.usecase.InsertAllFilesUseCase
 import it.macgood.domain.usecase.SelectAllFilesUseCase
-import it.macgood.vkfilemanager.R
-import it.macgood.vkfilemanager.presentation.MainActivity
 import it.macgood.vkfilemanager.presentation.filemanager.mapper.FileMapper
-import it.macgood.vkfilemanager.presentation.filemanager.model.SortBy
+import it.macgood.domain.model.SortBy
+import it.macgood.domain.usecase.SortFilesUseCase
 import it.macgood.vkfilemanager.presentation.utils.FileUtils
 import kotlinx.coroutines.*
 import java.io.File
@@ -23,7 +20,8 @@ import javax.inject.Inject
 class FileManagerViewModel @Inject constructor(
     private val externalStoragePath: String,
     private val selectAllFilesUseCase: SelectAllFilesUseCase,
-    private val insertAllFilesUseCase: InsertAllFilesUseCase
+    private val insertAllFilesUseCase: InsertAllFilesUseCase,
+    private val sortFilesUseCase: SortFilesUseCase
 ) : ViewModel() {
 
     private val _parentPath: MutableLiveData<String> = MutableLiveData()
@@ -59,29 +57,7 @@ class FileManagerViewModel @Inject constructor(
     }
 
     fun sortFilesBy(sortBy: SortBy) {
-        when (sortBy) {
-            SortBy.FILENAME_ASC -> {
-                _rootFiles.postValue(_rootFiles.value?.sortedBy { it.name.lowercase() })
-            }
-            SortBy.SIZE_ASC -> {
-                _rootFiles.postValue(_rootFiles.value?.sortedBy { it.length() })
-            }
-            SortBy.SIZE_DESC -> {
-                _rootFiles.postValue(_rootFiles.value?.sortedByDescending { it.length() })
-            }
-            SortBy.DATE_OF_CREATION_ASC -> {
-                _rootFiles.postValue(_rootFiles.value?.sortedBy { it.lastModified() })
-            }
-            SortBy.DATE_OF_CREATION_DESC -> {
-                _rootFiles.postValue(_rootFiles.value?.sortedByDescending { it.lastModified() })
-            }
-            SortBy.EXTENSION_ASC -> {
-                _rootFiles.postValue(_rootFiles.value?.sortedBy { it.extension })
-            }
-            SortBy.EXTENSION_DESC -> {
-                _rootFiles.postValue(_rootFiles.value?.sortedByDescending { it.extension })
-            }
-        }
+        _rootFiles.postValue(_rootFiles.value?.let { sortFilesUseCase.execute(it, sortBy) })
     }
 
     @OptIn(DelicateCoroutinesApi::class)

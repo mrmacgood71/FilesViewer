@@ -6,6 +6,7 @@
     <string name="storage_still_reading">Storage is still reading</string>
     <string name="no_modified_files">No modified files</string>
     <string name="reading_is_over">Files reading is over</string>
+    <string name="reading_is_not_over">Files reading is over</string>
     <string name="top_level_remind">You are at the top level</string>
     <string name="empty_folder">This folder is empty :(</string>
     <string name="reading_needed">Reading is needed</string>
