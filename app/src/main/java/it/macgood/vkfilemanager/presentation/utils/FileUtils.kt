@@ -40,34 +40,23 @@ object FileUtils {
         return totalSize
     }
 
-    fun apacheReadDirectory(directory: File, fileList: MutableList<File>) {
+    fun apacheReadDirectory(directory: File, fileList: MutableList<File>): MutableList<File> {
         val files = FileUtils.listFiles(directory, null, true)
         fileList.addAll(files)
+        return fileList
     }
 
-//    fun readStorageForFindModifiedFiles(
-//        directory: File,
-//        fileList: MutableList<FileChecksum>,
-//        closedTime: Long,
-//        onFileFound: () -> Unit
-//    ) {
-//        val files = directory.listFiles() ?: return
-//
-//        for (file in files) {
-//            if (file.isDirectory) {
-//                val paths = Paths.get(file.path)
-//                val attrs = Files.readAttributes(paths, BasicFileAttributes::class.java)
-//                if (attrs.lastModifiedTime().toMillis() > closedTime) {
-//                    readStorageForFindModifiedFiles(file, fileList, closedTime, onFileFound)
-//                }
-//            } else {
-//                if (file.lastModified() > closedTime) {
-//                    fileList.add(FileMapper.toFileChecksum(file))
-//                    onFileFound()
-//                }
-//            }
-//        }
-//    }
+    fun readDirectory(directory: File, fileList: MutableList<File>) {
+        val files = directory.listFiles() ?: return
+
+        for (file in files) {
+            if (file.isDirectory) {
+                readDirectory(file, fileList)
+            } else {
+                fileList.add(file)
+            }
+        }
+    }
 
     fun readStorageForFindModifiedFiles(
         directory: File,
