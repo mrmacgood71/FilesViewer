@@ -20,10 +20,10 @@ class SortFilesUseCase @Inject constructor() {
                 return list.sortedByDescending { it.length() }
             }
             SortBy.DATE_OF_CREATION_ASC -> {
-                return list.sortedBy { it.lastModified() }
+                return list.sortedByDescending { it.lastModified() }
             }
             SortBy.DATE_OF_CREATION_DESC -> {
-                return list.sortedByDescending { it.lastModified() }
+                return list.sortedBy { it.lastModified() }
             }
             SortBy.EXTENSION_ASC -> {
                 return list.sortedBy { it.extension }

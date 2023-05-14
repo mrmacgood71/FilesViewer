@@ -1,23 +1,36 @@
 package it.macgood.vkfilemanager.presentation.filemanager
 
+import android.Manifest
+import android.app.Activity.RESULT_OK
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
+import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import it.macgood.core.fragment.BaseFragment
+import it.macgood.domain.model.SortBy
 import it.macgood.vkfilemanager.R
 import it.macgood.vkfilemanager.databinding.FragmentFileManagerBinding
 import it.macgood.vkfilemanager.databinding.PartSortRadioGroupBinding
 import it.macgood.vkfilemanager.presentation.MainActivity
 import it.macgood.vkfilemanager.presentation.filemanager.adapter.FileManagerAdapter
-import it.macgood.domain.model.SortBy
 import java.io.File
 import kotlin.properties.Delegates
+
 
 @AndroidEntryPoint
 class FileManagerFragment : BaseFragment() {
@@ -39,8 +52,24 @@ class FileManagerFragment : BaseFragment() {
         binding = FragmentFileManagerBinding.inflate(inflater, container, false)
         fileAdapter = FileManagerAdapter(this)
 
-        permission.launch(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            if (ContextCompat.checkSelfPermission(requireContext(),
+                    Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+            ) {
+                binding.configStorageReading()
+            } else {
+                permission.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
 
+        } else {
+            if (Environment.isExternalStorageManager()) {
+                with(binding) {
+                    configStorageReading()
+                }
+            } else {
+                requestStoragePermissionOnLastAndroidVersions()
+            }
+        }
         val preferences = requireActivity()
             .getSharedPreferences(MainActivity.APP_PREFERENCES, Context.MODE_PRIVATE)
 
@@ -50,10 +79,30 @@ class FileManagerFragment : BaseFragment() {
         }
 
         binding.providePermissionButton.setOnClickListener {
-            permission.launch(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                permission.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+            } else {
+                requestStoragePermissionOnLastAndroidVersions()
+            }
         }
 
         return binding.root
+    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun requestStoragePermissionOnLastAndroidVersions() {
+        val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+        intent.addCategory("android.intent.category.DEFAULT")
+        val parts = Uri.fromParts("package", requireActivity().packageName, null)
+        intent.data = parts
+        startActivityForResult(intent, 100)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        with(binding) {
+            configEnableSortButton()
+        }
     }
 
     private val permission =
@@ -61,46 +110,10 @@ class FileManagerFragment : BaseFragment() {
             when {
                 granted -> {
                     with(binding) {
-                        var titlePath: String = path
-                        providePermissionButton.visibility = View.GONE
-                        backButton.visibility = View.VISIBLE
-
-                        configEnableSortButton()
-
-                        filesAndFolders = rootFolder.listFiles()
-
-                        configModifiedFilesButton()
-
-                        readExternalStorage { list ->
-                            makeSnackbar(
-                                binding.buttonPanelMotionLayout,
-                                getString(R.string.reading_is_over)
-                            )
-                        }
-                        fileManagerViewModel.parentPath.observe(viewLifecycleOwner) { parentPath ->
-                            (requireActivity() as MainActivity).supportActionBar?.title = parentPath
-                            titlePath = parentPath
-                            configBackButton(parentPath)
-                            sortByLinearLayout.configSorting()
-                            configShowingStorage(titlePath)
-
-                            val root = File(parentPath)
-                            val filesAndFolders = root.listFiles()
-                            fileManagerViewModel.setRootFiles(
-                                filesAndFolders?.toList()?.sortedBy { it.name.lowercase() })
-
-                            fileManagerViewModel.rootFiles.observe(viewLifecycleOwner) { files ->
-                                if (files != null) {
-                                    configEmptyFolderViewVisibility(files)
-                                    fileAdapter.differ.submitList(files)
-                                }
-                            }
-
-                            fileRecyclerView.adapter = fileAdapter
-                        }
+                        configStorageReading()
                     }
                 }
-                !shouldShowRequestPermissionRationale(android.Manifest.permission.READ_EXTERNAL_STORAGE) -> {
+                !shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE) -> {
                     makeSnackbar(
                         binding.buttonPanelMotionLayout,
                         getString(R.string.reading_needed)
@@ -111,6 +124,42 @@ class FileManagerFragment : BaseFragment() {
                 }
             }
         }
+
+    private fun FragmentFileManagerBinding.configStorageReading() {
+        var titlePath: String = path
+        providePermissionButton.visibility = View.GONE
+        backButton.visibility = View.VISIBLE
+        filesAndFolders = rootFolder.listFiles()
+
+        configModifiedFilesButton()
+
+        readExternalStorage { list ->
+            makeSnackbar(
+                binding.buttonPanelMotionLayout,
+                getString(R.string.reading_is_over)
+            )
+        }
+        fileManagerViewModel.parentPath.observe(viewLifecycleOwner) { parentPath ->
+            (requireActivity() as MainActivity).supportActionBar?.title = parentPath
+            titlePath = parentPath
+            configBackButton(parentPath)
+            sortByLinearLayout.configSorting()
+            configShowingStorage(titlePath)
+            val root = File(parentPath)
+            val filesAndFolders = root.listFiles()
+            fileManagerViewModel.setRootFiles(
+                filesAndFolders?.toList()?.sortedBy { it.name.lowercase() })
+
+            fileManagerViewModel.rootFiles.observe(viewLifecycleOwner) { files ->
+                if (files != null) {
+                    configEmptyFolderViewVisibility(files)
+                    fileAdapter.differ.submitList(files)
+                }
+            }
+
+            fileRecyclerView.adapter = fileAdapter
+        }
+    }
 
     override fun onResume() {
         super.onResume()
@@ -155,6 +204,15 @@ class FileManagerFragment : BaseFragment() {
                     backButton.visibility = View.GONE
                 }
             }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 100 && resultCode == 0) {
+            binding.configStorageReading()
+        } else {
+            binding.configShowingNotGrantedPermissionView()
         }
     }
 
@@ -245,7 +303,12 @@ class FileManagerFragment : BaseFragment() {
         fileManagerViewModel.isReadingIsWorking.observe(viewLifecycleOwner) {
             if (!it) {
                 if (isFirstOpenApp) {
-                    fileManagerViewModel.saveStorageFilesOnFirstOpenApp(onComplete, rootFolder)
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                        fileManagerViewModel.saveStorageFilesOnFirstOpenApp(onComplete, rootFolder)
+                    } else {
+                        fileManagerViewModel.saveStorageFilesWithLimits(onComplete, rootFolder)
+                    }
+
                 } else {
                     val preferences = requireActivity().getSharedPreferences(
                         MainActivity.APP_PREFERENCES,
@@ -254,7 +317,7 @@ class FileManagerFragment : BaseFragment() {
 
                     val closedTime = preferences.getLong(
                         MainActivity.CLOSE_APP_TIME_PREFERENCE,
-                    0L
+                        0L
                     )
                     fileManagerViewModel.checkModifiedFilesOnNotFirstOpenApp(
                         onComplete,
@@ -266,5 +329,4 @@ class FileManagerFragment : BaseFragment() {
             }
         }
     }
-
 }

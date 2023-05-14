@@ -6,11 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import it.macgood.domain.model.FileChecksum
+import it.macgood.domain.model.SortBy
 import it.macgood.domain.usecase.InsertAllFilesUseCase
 import it.macgood.domain.usecase.SelectAllFilesUseCase
-import it.macgood.vkfilemanager.presentation.filemanager.mapper.FileMapper
-import it.macgood.domain.model.SortBy
 import it.macgood.domain.usecase.SortFilesUseCase
+import it.macgood.vkfilemanager.presentation.filemanager.mapper.FileMapper
 import it.macgood.vkfilemanager.presentation.utils.FileUtils
 import kotlinx.coroutines.*
 import java.io.File
@@ -102,40 +102,49 @@ class FileManagerViewModel @Inject constructor(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     fun saveStorageFilesOnFirstOpenApp(
         onComplete: (List<File>) -> Unit,
         externalDir: File
-    ) {
-        GlobalScope.launch(Dispatchers.IO) {
-            val fileList = mutableListOf<File>()
-
-            val readJob = launch(Dispatchers.IO) {
+    ) = viewModelScope.launch {
+        val fileList = mutableListOf<File>()
+        try {
+            val readJob = async(Dispatchers.IO) {
                 FileUtils.apacheReadDirectory(externalDir, fileList)
             }
-
-            val databaseJob = async(Dispatchers.IO) {
-                selectAllFilesUseCase.execute()
-            }
-            readJob.join()
-            val storageFilesList = FileMapper.toFileChecksums(fileList)
+            val storageFilesList = FileMapper.toFileChecksums(readJob.await())
             val modifiedFilesList: MutableList<File> = mutableListOf()
-            val databaseFilesList = databaseJob.await()
-            val storageFilesMap = storageFilesList.associateBy { it.path }
 
-            for (file in databaseFilesList) {
-                val storageFile = storageFilesMap[file.path]
-                if (storageFile != null && storageFile.checksum != file.checksum) {
-                    modifiedFilesList.add(FileMapper.toFile(file))
-                }
-            }
             insertAll(storageFilesList)
             modifiedList.postValue(modifiedFilesList)
             withContext(Dispatchers.Main) {
                 onComplete(modifiedFilesList)
             }
-        }
+
+        } catch (e: AccessDeniedException) { }
     }
+
+    fun saveStorageFilesWithLimits(
+        onComplete: (List<File>) -> Unit,
+        externalDir: File
+    ) = viewModelScope.launch {
+        val fileList = mutableListOf<File>()
+        try {
+            val readJob = async(Dispatchers.IO) {
+                FileUtils.readDirectory(externalDir, fileList)
+            }
+            readJob.join()
+            val storageFilesList = FileMapper.toFileChecksums(fileList)
+            val modifiedFilesList: MutableList<File> = mutableListOf()
+
+            insertAll(storageFilesList)
+            modifiedList.postValue(modifiedFilesList)
+            withContext(Dispatchers.Main) {
+                onComplete(modifiedFilesList)
+            }
+
+        } catch (e: AccessDeniedException) { }
+    }
+
 
     private fun insertAll(filesChecksum: List<FileChecksum>) = viewModelScope.launch {
         insertAllFilesUseCase.execute(filesChecksum)
